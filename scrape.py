@@ -8,7 +8,7 @@ import csv
  
 strims = ['destiny', 'nathanias', 'nl_kripp', 'phantoml0rd', 'lethalfrag', 'totalbiscuit', 'sodapoppin', 'kaceytron','timthetatman',
         'trick2g', 'piglet', 'saintvicious', 'riotgames', 'imaqtpie', 'tsm_theoddone', 'voyboy', 'aphromoo','kaylovespie',
-        'forsenlol', 'cro_', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli',
+        'forsenlol', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli',
         'tayzondaygames', 'dansgaming', 'goldglove', 'uknighted', 'defrancogames', 'nvidia', 'reckful', 'reynad27','towelliee',
         'dinglederper', 'itshafu', 'alinity',  'legendarylea', 'livibee', 'kaitlyn', 'tigerlily___', 'alisha12287','lirik',
         'wintergaming', 'naniwasc2', 'basetradetv', 'gsl', 'avilo', 'taketv', 'desrowfighting', 'egjd','kristiplays','wcs','2mgovercsquared',
@@ -51,7 +51,7 @@ class ThreadGet(threading.Thread):
 			#gets chatter count
 			try:
 				responseChatter = requests.get(CHATTER_ENDPOINT)
-			except ConnectionError:
+			except requests.exceptions.ConnectionError:
 				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters: reset/refused)"
 				skipCSV = True
 
@@ -68,7 +68,7 @@ class ThreadGet(threading.Thread):
 			#get viewer count
 			try:
 				responseViewer = requests.get(VIEWER_ENDPOINT)
-			except ConnectionError:
+			except requests.exceptions.ConnectionError:
 				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers: reset/refused)"
 				skipCSV = True
 
