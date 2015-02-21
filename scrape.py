@@ -51,7 +51,7 @@ class ThreadGet(threading.Thread):
 			#gets chatter count
 			try:
 				responseChatter = requests.get(CHATTER_ENDPOINT)
-			except requests.exceptions.ConnectionError:
+			except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError):
 				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters: reset/refused)"
 				skipCSV = True
 
@@ -68,7 +68,7 @@ class ThreadGet(threading.Thread):
 			#get viewer count
 			try:
 				responseViewer = requests.get(VIEWER_ENDPOINT)
-			except requests.exceptions.ConnectionError:
+			except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError):
 				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers: reset/refused)"
 				skipCSV = True
 
