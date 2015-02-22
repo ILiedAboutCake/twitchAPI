@@ -7,15 +7,15 @@ import time
 import csv
  
 strims = ['destiny', 'nathanias', 'nl_kripp', 'phantoml0rd', 'lethalfrag', 'totalbiscuit', 'sodapoppin', 'kaceytron','timthetatman',
-        'trick2g', 'piglet', 'saintvicious', 'riotgames', 'imaqtpie', 'tsm_theoddone', 'voyboy', 'aphromoo','kaylovespie',
-        'forsenlol', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli',
-        'tayzondaygames', 'dansgaming', 'goldglove', 'uknighted', 'defrancogames', 'nvidia', 'reckful', 'reynad27','towelliee',
-        'dinglederper', 'itshafu', 'alinity',  'legendarylea', 'livibee', 'kaitlyn', 'tigerlily___', 'alisha12287','lirik',
-        'wintergaming', 'naniwasc2', 'basetradetv', 'gsl', 'avilo', 'taketv', 'desrowfighting', 'egjd','kristiplays','wcs','2mgovercsquared',
-        'crank', 'wcs_america', 'wcs_europe', 'eghuk', 'rotterdam08', 'rootcatz', 'incontroltv', 'dragon','lagtvmaximusblack','streamerhouse',
-        'dotademon','starladder3','athenelive','forsenlol','gretorptv','bacon_donut','ellohime','cdewx','monstercat','machinima',
-        'kneecoleslaw','theoriginalweed','kylelandrypiano','meclipse','taymoo','watchmeblink1','steel_tv','kolento','tarik_tv','sacriel',
-        'richardlewisreports', 'twitchplayspokemon', 'day9tv', 'lycangtv', 'followgrubby', 'deadmau5', 'riotgames','riotgames2']
+		'trick2g', 'piglet', 'saintvicious', 'riotgames', 'imaqtpie', 'tsm_theoddone', 'voyboy', 'aphromoo','kaylovespie','pcmtournies',
+		'forsenlol', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli','spectatefaker',
+		'tayzondaygames', 'dansgaming', 'goldglove', 'uknighted', 'defrancogames', 'nvidia', 'reckful', 'reynad27','towelliee','saltyteemo',
+		'dinglederper', 'itshafu', 'alinity',  'legendarylea', 'livibee', 'kaitlyn', 'tigerlily___', 'alisha12287','lirik','sheebslol',
+		'wintergaming', 'naniwasc2', 'basetradetv', 'gsl', 'avilo', 'taketv', 'desrowfighting', 'egjd','kristiplays','wcs','2mgovercsquared',
+		'crank', 'wcs_america', 'wcs_europe', 'eghuk', 'rotterdam08', 'rootcatz', 'incontroltv', 'dragon','lagtvmaximusblack','streamerhouse',
+		'dotademon','starladder3','athenelive','forsenlol','gretorptv','bacon_donut','ellohime','cdewx','monstercat','machinima','cro_',
+		'kneecoleslaw','theoriginalweed','kylelandrypiano','meclipse','taymoo','watchmeblink1','steel_tv','kolento','tarik_tv','sacriel',
+		'richardlewisreports', 'twitchplayspokemon', 'day9tv', 'lycangtv', 'followgrubby', 'deadmau5', 'riotgames','riotgames2']
 
 threadCount = 15 #define threads as a static number or use, len(strims) to run each as a thread. DO NOT DO THIS UNLESS YOU WANT TO GET BANNED FROM TWITCH
 sleepTime = 60 #define time to reload the queue
@@ -62,7 +62,7 @@ class ThreadGet(threading.Thread):
 			try:
 				chatterObj = responseChatter.json()
 				chatters = chatterObj['chatter_count']
-			except (TypeError, ValueError):
+			except (TypeError, ValueError, KeyError):
 				chatters = 0
 
 			#get viewer count
@@ -79,7 +79,7 @@ class ThreadGet(threading.Thread):
 			try:
 				viewerObj = responseViewer.json()
 				viewers = viewerObj['stream']['viewers']
-			except (TypeError, ValueError):
+			except (TypeError, ValueError, KeyError):
 				viewers = 0
 
 			#get stream uptime
