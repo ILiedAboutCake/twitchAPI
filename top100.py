@@ -33,10 +33,10 @@ class StreamerGet(threading.Thread):
 			try:
 			    api = urllib2.urlopen(endpoint + '?limit=' + str(topStrims))
 			except urllib2.HTTPError as e:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.code)
+				print bcolors.FAIL + "<--- " + timeMeme() + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.code)
 				skipCSV = True
 			except urllib2.URLError as e:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.reason)
+				print bcolors.FAIL + "<--- " + timeMeme() + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.reason)
 				skipCSV = True
 
 			try:
