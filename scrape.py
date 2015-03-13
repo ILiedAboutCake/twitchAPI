@@ -1,21 +1,23 @@
 #Requires https://github.com/adoxa/ansicon to run on windows cmd (cleanly) -ILiedAboutCake 2015.
 #also needs requests library on windows, get it with "python -m pip install -U requests"
 import threading
-import requests
+import urllib2
 import Queue
 import time
+import json
 import csv
  
 strims = ['destiny', 'nathanias', 'nl_kripp', 'phantoml0rd', 'lethalfrag', 'totalbiscuit', 'sodapoppin', 'kaceytron','timthetatman',
-		'trick2g', 'piglet', 'saintvicious', 'riotgames', 'imaqtpie', 'tsm_theoddone', 'voyboy', 'aphromoo','kaylovespie','pcmtournies',
-		'forsenlol', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli','spectatefaker',
-		'tayzondaygames', 'dansgaming', 'goldglove', 'uknighted', 'defrancogames', 'nvidia', 'reckful', 'reynad27','towelliee','saltyteemo',
-		'dinglederper', 'itshafu', 'alinity',  'legendarylea', 'livibee', 'kaitlyn', 'tigerlily___', 'alisha12287','lirik','sheebslol',
-		'wintergaming', 'naniwasc2', 'basetradetv', 'gsl', 'avilo', 'taketv', 'desrowfighting', 'egjd','kristiplays','wcs','2mgovercsquared',
-		'crank', 'wcs_america', 'wcs_europe', 'eghuk', 'rotterdam08', 'rootcatz', 'incontroltv', 'dragon','lagtvmaximusblack','streamerhouse',
-		'dotademon','starladder3','athenelive','forsenlol','gretorptv','bacon_donut','ellohime','cdewx','monstercat','machinima','cro_',
-		'kneecoleslaw','theoriginalweed','kylelandrypiano','meclipse','taymoo','watchmeblink1','steel_tv','kolento','tarik_tv','sacriel',
-		'richardlewisreports', 'twitchplayspokemon', 'day9tv', 'lycangtv', 'followgrubby', 'deadmau5', 'riotgames','riotgames2']
+        'trick2g', 'piglet', 'saintvicious', 'riotgames', 'imaqtpie', 'tsm_theoddone', 'voyboy', 'aphromoo','kaylovespie','fenn3r',
+        'forsenlol', 'swiftor', 'itmejp', 'arteezy', 'summit1g', 'dendi', 'aimostfamous','twitch','trumpsc','lolpoli',
+        'tayzondaygames', 'dansgaming', 'goldglove', 'uknighted', 'defrancogames', 'nvidia', 'reckful', 'reynad27','towelliee','saltyteemo',
+        'dinglederper', 'itshafu', 'alinity',  'legendarylea', 'livibee', 'kaitlyn', 'tigerlily___', 'alisha12287','lirik','sheebslol',
+        'wintergaming', 'naniwasc2', 'basetradetv', 'gsl', 'avilo', 'taketv', 'desrowfighting', 'egjd','kristiplays','wcs','2mgovercsquared',
+        'crank', 'wcs_america', 'wcs_europe', 'eghuk', 'rotterdam08', 'rootcatz', 'incontroltv', 'dragon','lagtvmaximusblack','streamerhouse',
+        'dotademon','starladder3','athenelive','forsenlol','gretorptv','bacon_donut','ellohime','cdewx','monstercat','machinima',
+        'kneecoleslaw','theoriginalweed','kylelandrypiano','meclipse','taymoo','watchmeblink1','steel_tv','kolento','tarik_tv','sacriel',
+        'richardlewisreports', 'twitchplayspokemon', 'day9tv', 'lycangtv', 'followgrubby', 'deadmau5', 'riotgames','riotgames2',
+		'hikotv','cro_','syndicate','nightblue3','fatefalls','szyzyg','thatsportsgamer','almostfamous','ajkcsgo']
 
 threadCount = 15 #define threads as a static number or use, len(strims) to run each as a thread. DO NOT DO THIS UNLESS YOU WANT TO GET BANNED FROM TWITCH
 sleepTime = 60 #define time to reload the queue
@@ -50,46 +52,51 @@ class ThreadGet(threading.Thread):
 
 			#gets chatter count
 			try:
-				responseChatter = requests.get(CHATTER_ENDPOINT)
-			except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError):
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters: reset/refused)"
+				responseChatter = urllib2.urlopen(CHATTER_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(e.code)
 				skipCSV = True
-
-			if responseChatter.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(responseChatter.status_code)
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(e.reason)
 				skipCSV = True
-
+ 
 			try:
-				chatterObj = responseChatter.json()
+				chatterObj = json.loads(responseChatter.read())
 				chatters = chatterObj['chatter_count']
-			except (TypeError, ValueError, KeyError):
+			except (TypeError, ValueError):
 				chatters = 0
 
 			#get viewer count
 			try:
-				responseViewer = requests.get(VIEWER_ENDPOINT)
-			except (requests.exceptions.ConnectionError, requests.exceptions.ChunkedEncodingError):
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers: reset/refused)"
+				responseViewer = urllib2.urlopen(VIEWER_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(e.code)
 				skipCSV = True
-
-			if responseViewer.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(responseViewer.status_code)
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(e.reason)
 				skipCSV = True
-
+ 
 			try:
-				viewerObj = responseViewer.json()
+				viewerObj = json.loads(responseViewer.read())
 				viewers = viewerObj['stream']['viewers']
-			except (TypeError, ValueError, KeyError):
+			except (TypeError, ValueError):
 				viewers = 0
 
 			#get stream uptime
-			responseUptime = requests.get(UPTIME_ENDPOINT)
-
-			if responseUptime.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(responseUptime.status_code)
+			try:
+				responseUptime = urllib2.urlopen(UPTIME_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(e.code)
 				skipCSV = True
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(e.reason)
+				skipCSV = True
+ 
+			try:
+				uptime = (responseUptime.read())
+			except (TypeError, ValueError):
+				uptime = "no"
 
-			uptime = responseUptime.text
 			uptime = uptime.replace("The channel is not live.", "no");
 			uptime = uptime.replace(" ", "").replace(",", " ");
 			uptime = uptime.replace("minutes", "m").replace("minute", "m");

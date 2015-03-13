@@ -1,7 +1,7 @@
 #Requires https://github.com/adoxa/ansicon to run on windows cmd (cleanly) -ILiedAboutCake 2015.
 #also needs requests library on windows, get it with "python -m pip install -U requests"
 import threading
-import requests
+import urllib2
 import Queue
 import json
 import time
@@ -9,7 +9,7 @@ import csv
 
 threadCount = 15 #define threads as a static number or use, len(strims) to run each as a thread. 
 sleepTime = 60 #define time to reload the queue
-topStrims = 25 #top number of twitch users to track
+topStrims = 100 #top number of twitch users to track
 endpoint = "https://api.twitch.tv/kraken/streams"
 
 queue = Queue.Queue()
@@ -31,11 +31,20 @@ class StreamerGet(threading.Thread):
 	def run(self):
 		while True:
 			try:
-			    api = requests.get(endpoint + '?limit=' + str(topStrims))
-			except (requests.ConnectionError, requests.ChunkedEncodingError):
-			    print 'error: twitch.tv more dead than SC2'
+			    api = urllib2.urlopen(endpoint + '?limit=' + str(topStrims))
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.code)
+				skipCSV = True
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (top100). Code " + str(e.reason)
+				skipCSV = True
 
-			list = api.json()
+			try:
+				topObj = json.loads(api.read())
+				list = topObj
+			except (TypeError, ValueError):
+				chatters = 0
+
 
 			for x in range(0, topStrims):
 				queue.put(list['streams'][x]['channel']['name'])
@@ -61,48 +70,53 @@ class ThreadGet(threading.Thread):
 			VIEWER_ENDPOINT = "https://api.twitch.tv/kraken/streams/" + streamer	
 			UPTIME_ENDPOINT = "https://nightdev.com/hosted/uptime.php?channel=" + streamer
 
-			#gets chatter count
+			#chatter count
 			try:
-				responseChatter = requests.get(CHATTER_ENDPOINT)
-			except (requests.ConnectionError, requests.ChunkedEncodingError):
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters: reset/refused)"
+				responseChatter = urllib2.urlopen(CHATTER_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(e.code)
 				skipCSV = True
-
-			if responseChatter.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(responseChatter.status_code)
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (chatters). Code " + str(e.reason)
 				skipCSV = True
-
+ 
 			try:
-				chatterObj = responseChatter.json()
+				chatterObj = json.loads(responseChatter.read())
 				chatters = chatterObj['chatter_count']
-			except (TypeError, ValueError, KeyError):
+			except (TypeError, ValueError):
 				chatters = 0
 
 			#get viewer count
 			try:
-				responseViewer = requests.get(VIEWER_ENDPOINT)
-			except (requests.ConnectionError, requests.ChunkedEncodingError):
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers: reset/refused)"
+				responseViewer = urllib2.urlopen(VIEWER_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(e.code)
 				skipCSV = True
-
-			if responseViewer.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(responseViewer.status_code)
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): API Failed (viewers). Code " + str(e.reason)
 				skipCSV = True
-
+ 
 			try:
-				viewerObj = responseViewer.json()
+				viewerObj = json.loads(responseViewer.read())
 				viewers = viewerObj['stream']['viewers']
-			except (TypeError, ValueError, KeyError):
+			except (TypeError, ValueError):
 				viewers = 0
 
 			#get stream uptime
-			responseUptime = requests.get(UPTIME_ENDPOINT)
-
-			if responseUptime.status_code != requests.codes.ok:
-				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(responseUptime.status_code)
+			try:
+				responseUptime = urllib2.urlopen(UPTIME_ENDPOINT)
+			except urllib2.HTTPError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(e.code)
 				skipCSV = True
+			except urllib2.URLError as e:
+				print bcolors.FAIL + "<--- " + timeStamp + " <" + self.name + "> (" + streamer + "): Uptime Failed. Code " + str(e.reason)
+				skipCSV = True
+ 
+			try:
+				uptime = (responseUptime.read())
+			except (TypeError, ValueError):
+				uptime = "no"
 
-			uptime = responseUptime.text
 			uptime = uptime.replace("The channel is not live.", "no");
 			uptime = uptime.replace(" ", "").replace(",", " ");
 			uptime = uptime.replace("minutes", "m").replace("minute", "m");
